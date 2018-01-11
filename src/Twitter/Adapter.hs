@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
 module Twitter.Adapter (
@@ -8,12 +9,12 @@ import           GHC.Generics
 import           Control.Applicative
 import           Data.Aeson
 import qualified Data.ByteString.Char8      as S8
-import qualified Data.ByteString.Lazy.Char8 as L8
 import           Data.ByteString.Conversion
+import           Data.Time.Format
+import           Data.Time.Clock
 import           Data.Maybe (fromMaybe)
 import qualified Data.Text.Encoding         as E
 import           Data.Text (Text)
-import qualified Data.Yaml                  as Yaml
 import           Network.HTTP.Simple
 import           Network.HTTP.Client
 import           Twitter.Config
@@ -47,8 +48,28 @@ bearer = do
     response <- httpJSON request
     return (getResponseBody response :: Token)
 
+data TweeterTimeLine = TweeterTimeLine {
+  text :: Text,
+  userName :: Text,
+  createdAt :: Maybe UTCTime,
+  retweetCount :: Int,
+  favoriteCount :: Int
+} deriving (Generic, Show)
 
-userTimeline :: S8.ByteString -> Maybe Int -> IO ()
+instance FromJSON TweeterTimeLine where
+    parseJSON (Object v) = do
+      text <- v .: "text"
+      userName <- (v .: "user") >>= (.: "screen_name")
+      createdAtUnparsed <- (v .: "created_at")
+      retweetCount <- v .: "retweet_count"
+      favoriteCount <- v .: "favorite_count"
+      return TweeterTimeLine{text = text, userName = userName, createdAt = parseDate createdAtUnparsed, retweetCount = retweetCount, favoriteCount = favoriteCount}
+    parseJSON _          = empty
+
+parseDate :: String -> Maybe UTCTime
+parseDate date = parseTimeM True defaultTimeLocale "%a %h %d %T +0000 %Y" date :: Maybe UTCTime
+
+userTimeline :: S8.ByteString -> Maybe Int -> IO [TweeterTimeLine]
 userTimeline name limit = do
     token <- bearer
     request' <- parseRequest "https://api.twitter.com"
@@ -60,4 +81,4 @@ userTimeline name limit = do
             $ setRequestSecure True
             $ setRequestPort 443 request'
     response <- httpJSON request
-    S8.putStrLn $ Yaml.encode (getResponseBody response :: Value)
+    return (getResponseBody response :: [TweeterTimeLine])

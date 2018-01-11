@@ -22,6 +22,7 @@ library
                      , base64-bytestring
                      , bytestring
                      , bytestring-conversion
+                     , time
                      , yaml
                      , http-client
                      , http-conduit

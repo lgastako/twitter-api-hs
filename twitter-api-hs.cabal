@@ -15,9 +15,10 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Example
+                     , src/Twitter
+  exposed-modules:     Twitter.Config
+                     , Twitter.Model
                      , Twitter.Adapter
-                     , Twitter.Config
   build-depends:       base >= 4.7 && < 5
                      , base64-bytestring
                      , bytestring

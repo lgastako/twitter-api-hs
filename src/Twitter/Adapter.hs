@@ -1,4 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
 module Twitter.Adapter (
@@ -10,14 +9,13 @@ import           Control.Applicative
 import           Data.Aeson
 import qualified Data.ByteString.Char8      as S8
 import           Data.ByteString.Conversion
-import           Data.Time.Format
-import           Data.Time.Clock
 import           Data.Maybe (fromMaybe)
 import qualified Data.Text.Encoding         as E
 import           Data.Text (Text)
 import           Network.HTTP.Simple
 import           Network.HTTP.Client
 import           Twitter.Config
+import           Twitter.Model
 
 data Token = Token { tokenType :: Text, accessToken :: Text } deriving (Generic, Show)
 
@@ -47,29 +45,6 @@ bearer = do
             $ setRequestPort 443 request'
     response <- httpJSON request
     return (getResponseBody response :: Token)
-
-data TweeterTimeLine = TweeterTimeLine {
-  text :: Text,
-  userName :: Text,
-  createdAt :: Maybe UTCTime,
-  retweetCount :: Int,
-  favoriteCount :: Int
-} deriving (Generic, Show)
-
-instance FromJSON TweeterTimeLine where
-    parseJSON (Object v) = do
-      text <- v .: "text"
-      userName <- (v .: "user") >>= (.: "screen_name")
-      createdAtStr <- v .: "created_at"
-      let createdAt = parseDate createdAtStr
-      retweetCount <- v .: "retweet_count"
-      favoriteCount <- v .: "favorite_count"
-      return TweeterTimeLine{..}
-    parseJSON _          = empty
-
-parseDate :: String -> Maybe UTCTime
-parseDate date = parseTimeM True defaultTimeLocale "%a %h %d %T +0000 %Y" date :: Maybe UTCTime
-
 
 userTimeline :: S8.ByteString -> Maybe Int -> IO [TweeterTimeLine]
 userTimeline name limit = do

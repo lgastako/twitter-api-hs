@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings, QuasiQuotes #-}
-module Example (runApp, app) where
+module App (runApp, app) where
 
 import           Data.Aeson (Value(..), object, (.=))
 import           Network.Wai (Application)

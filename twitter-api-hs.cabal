@@ -16,7 +16,8 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
                      , src/Twitter
-  exposed-modules:     Twitter.Config
+  exposed-modules:     App
+                     , Twitter.Config
                      , Twitter.Model
                      , Twitter.Adapter
   build-depends:       base >= 4.7 && < 5

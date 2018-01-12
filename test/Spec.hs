@@ -7,7 +7,7 @@ import           Test.Hspec.Wai.JSON
 import           Network.HTTP.Types.Header
 import           Data.Aeson (Value(..), object, (.=))
 
-import           Example (app)
+import           App (app)
 
 main :: IO ()
 main = hspec spec
@@ -31,6 +31,6 @@ spec = with app $ do
     it "responds with some JSON" $ do
       get "/some-json" `shouldRespondWith` expectedJsonResponse
 
-expectedJsonResponse = 
+expectedJsonResponse =
   let ResponseMatcher status headers body = [json|{foo: 23, bar: 42}|]
   in ResponseMatcher status [hContentType <:> "application/json; charset=utf-8"] body

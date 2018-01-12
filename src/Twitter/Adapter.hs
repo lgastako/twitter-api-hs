@@ -46,7 +46,7 @@ bearer = do
     response <- httpJSON request
     return (getResponseBody response :: Token)
 
-userTimeline :: S8.ByteString -> Maybe Int -> IO [TweeterTimeLine]
+userTimeline :: S8.ByteString -> Maybe Int -> IO [Tweet]
 userTimeline name limit = do
     token <- bearer
     request' <- parseRequest "https://api.twitter.com"
@@ -58,4 +58,4 @@ userTimeline name limit = do
             $ setRequestSecure True
             $ setRequestPort 443 request'
     response <- httpJSON request
-    return (getResponseBody response :: [TweeterTimeLine])
+    return (getResponseBody response :: [Tweet])

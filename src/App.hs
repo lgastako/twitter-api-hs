@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, QuasiQuotes #-}
+{-# LANGUAGE OverloadedStrings #-}
 module App (runApp, app) where
 
 import           Control.Monad.IO.Class
@@ -10,8 +10,7 @@ import           Twitter.Model
 
 app' :: S.ScottyM ()
 app' = do
-  S.get "/" $ do
-    S.json $ object ["endpoints" .= object ["user_timeline" .= String "/user/{userName}/timeline"] ]
+  S.get "/" $ S.json $ object ["endpoints" .= object ["user_timeline" .= String "/user/{userName}/timeline"] ]
 
   S.get "/user/:userName/timeline" $ do
     userName <- S.param "userName"

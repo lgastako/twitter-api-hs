@@ -11,9 +11,7 @@ import qualified Data.ByteString.Char8      as S8
 import           Data.ByteString.Conversion
 
 
-data Config = Config {
-  twitter :: TwitterConf
-}
+newtype Config = Config { twitter :: TwitterConf }
 
 data TwitterConf = TwitterConf {
   consumerKey :: String,

@@ -60,14 +60,16 @@ instance FromJSON TweeterTimeLine where
     parseJSON (Object v) = do
       text <- v .: "text"
       userName <- (v .: "user") >>= (.: "screen_name")
-      createdAtUnparsed <- (v .: "created_at")
+      createdAtStr <- v .: "created_at"
+      let createdAt = parseDate createdAtStr
       retweetCount <- v .: "retweet_count"
       favoriteCount <- v .: "favorite_count"
-      return TweeterTimeLine{text = text, userName = userName, createdAt = parseDate createdAtUnparsed, retweetCount = retweetCount, favoriteCount = favoriteCount}
+      return TweeterTimeLine{..}
     parseJSON _          = empty
 
 parseDate :: String -> Maybe UTCTime
 parseDate date = parseTimeM True defaultTimeLocale "%a %h %d %T +0000 %Y" date :: Maybe UTCTime
+
 
 userTimeline :: S8.ByteString -> Maybe Int -> IO [TweeterTimeLine]
 userTimeline name limit = do

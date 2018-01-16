@@ -1,9 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
-module Twitter.Adapter (
-userTimeline
+module Twitter.ServiceImpl (
+newHandle
 ) where
 
+import qualified Twitter.Service            as Service
 import           GHC.Generics
 import           Control.Applicative
 import           Data.Aeson
@@ -16,6 +17,7 @@ import           Network.HTTP.Simple
 import           Network.HTTP.Client
 import           Twitter.Config
 import           Twitter.Model
+import           Control.Concurrent.MVar (newMVar, withMVar)
 
 data Token = Token { tokenType :: Text, accessToken :: Text } deriving (Generic, Show)
 
@@ -46,7 +48,7 @@ bearer = do
     response <- httpJSON request
     return (getResponseBody response :: Token)
 
-userTimeline :: S8.ByteString -> Maybe Int -> IO [Tweet]
+userTimeline :: Text -> Maybe Int -> IO [Tweet]
 userTimeline name limit = do
     token <- bearer
     request' <- parseRequest "https://api.twitter.com"
@@ -54,8 +56,21 @@ userTimeline name limit = do
             = setRequestMethod "GET"
             $ setRequestHeader "Authorization" [S8.concat ["Bearer ", E.encodeUtf8 (accessToken token)]]
             $ setRequestPath "/1.1/statuses/user_timeline.json"
-            $ setQueryString [("screen_name", Just name), ("count", Just (toByteString' $ fromMaybe 10 limit))]
+            $ setQueryString [("screen_name", Just (E.encodeUtf8 name)), ("count", Just (toByteString' $ fromMaybe 10 limit))]
             $ setRequestSecure True
             $ setRequestPort 443 request'
     response <- httpJSON request
     return (getResponseBody response :: [Tweet])
+
+-- | Create a new 'Service.Handle' that calls to twitter api.
+newHandle :: IO (Service.Handle [Tweet])
+newHandle = do
+    -- We use a mutex to make our logger thread-safe.
+    -- (Note that we should take this mutex as an argument for maximal
+    -- compositionality.)
+    mutex <- newMVar ()
+
+    return $ Service.Handle
+      { Service.execute = \userName limit ->
+            withMVar mutex $ \() -> userTimeline userName limit
+      }

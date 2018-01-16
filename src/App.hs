@@ -5,8 +5,9 @@ import           Control.Monad.IO.Class
 import           Data.Aeson (Value(..), object, (.=))
 import           Network.Wai (Application)
 import qualified Web.Scotty as S
-import           Twitter.Adapter
 import           Twitter.Model
+import           Twitter.Service as Service
+import           Twitter.ServiceImpl as ServiceImpl
 
 app' :: S.ScottyM ()
 app' = do
@@ -15,8 +16,10 @@ app' = do
   S.get "/user/:userName/timeline" $ do
     userName <- S.param "userName"
     limit <- S.param "limit" `S.rescue` (\x -> return 10)
-    timeLine <- liftIO $ userTimeline userName (Just limit)
-    S.json (timeLine :: [Tweet])
+    timeline <- liftIO $ do
+      service <- ServiceImpl.newHandle
+      userTimeline service userName (Just limit)
+    S.json (timeline :: [Tweet])
 
 app :: IO Application
 app = S.scottyApp app'

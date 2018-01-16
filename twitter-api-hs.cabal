@@ -19,7 +19,8 @@ library
   exposed-modules:     App
                      , Twitter.Config
                      , Twitter.Model
-                     , Twitter.Adapter
+                     , Twitter.Service
+                     , Twitter.ServiceImpl
   build-depends:       base >= 4.7 && < 5
                      , base64-bytestring
                      , bytestring

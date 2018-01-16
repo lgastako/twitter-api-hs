@@ -62,8 +62,10 @@ userTimeline name limit = do
     response <- httpJSON request
     return (getResponseBody response :: [Tweet])
 
+type ServiceResponse = Service.Handle [Tweet]
+
 -- | Create a new 'Service.Handle' that calls to twitter api.
-newHandle :: IO (Service.Handle [Tweet])
+newHandle :: IO ServiceResponse
 newHandle = do
     -- We use a mutex to make our logger thread-safe.
     -- (Note that we should take this mutex as an argument for maximal

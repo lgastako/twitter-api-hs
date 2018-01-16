@@ -70,7 +70,7 @@ newHandle = do
     -- compositionality.)
     mutex <- newMVar ()
 
-    return $ Service.Handle
+    return Service.Handle
       { Service.execute = \userName limit ->
             withMVar mutex $ \() -> userTimeline userName limit
       }

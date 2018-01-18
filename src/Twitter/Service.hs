@@ -1,17 +1,26 @@
+{-# LANGUAGE RecordWildCards #-}
 -- | This is an abstract interface for a simple Twitter service. It is intended to be
 -- imported qualified as follows.
 --
 -- > import qualified Twitter.Service as Service
 --
 module Twitter.Service
-  ( -- * Abstract handles
+  (
     Handle(..)
-  , userTimeline
+  , TimeLineRequest(userName,limit)
+  , createTimeLineRequest
+  , timeline
   ) where
 
-import qualified Data.Text as T
+import           Data.Text         (Text)
+import           Twitter.Model     (UserTimeLine)
 
-newtype Handle a = Handle { execute :: T.Text -> Maybe Int -> IO a }
+newtype Handle a b = Handle { execute :: a -> IO b }
 
-userTimeline :: Handle a -> T.Text -> Maybe Int -> IO a
-userTimeline = execute
+data TimeLineRequest = TimeLineRequest { userName :: Text, limit :: Maybe Int }
+
+createTimeLineRequest :: Text -> Maybe Int -> TimeLineRequest
+createTimeLineRequest userName limit = TimeLineRequest{..}
+
+timeline :: Handle TimeLineRequest UserTimeLine -> TimeLineRequest -> IO UserTimeLine
+timeline = execute

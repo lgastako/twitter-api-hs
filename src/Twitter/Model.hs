@@ -3,15 +3,16 @@
 {-# LANGUAGE DeriveGeneric #-}
 
 module Twitter.Model (
-Tweet(text,userName,createdAt,retweetCount,favoriteCount)
+Tweet(text,userName,createdAt,retweetCount,favoriteCount),
+UserTimeLine
 ) where
 
-import           Control.Applicative
-import           Data.Aeson
-import           Data.Text (Text)
-import           Data.Time.Format
-import           Data.Time.Clock
-import           GHC.Generics
+import           GHC.Generics                 (Generic)
+import           Control.Applicative          ((<$>),(<*>),empty)
+import           Data.Aeson                   (Value(..), FromJSON(..), ToJSON(..), (.:))
+import           Data.Text                    (Text)
+import           Data.Time.Format             (parseTimeM, defaultTimeLocale)
+import           Data.Time.Clock              (UTCTime)
 
 data Tweet = Tweet {
   text :: Text,
@@ -36,3 +37,5 @@ parseDate :: String -> Maybe UTCTime
 parseDate date = parseTimeM True defaultTimeLocale "%a %h %d %T +0000 %Y" date :: Maybe UTCTime
 
 instance ToJSON Tweet
+
+type UserTimeLine = [Tweet]

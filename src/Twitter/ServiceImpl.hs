@@ -4,20 +4,20 @@ module Twitter.ServiceImpl (
 newHandle
 ) where
 
-import qualified Twitter.Service            as Service
-import           GHC.Generics
-import           Control.Applicative
-import           Data.Aeson
+import           GHC.Generics               (Generic)
+import           Control.Applicative        ((<$>), (<*>), empty)
+import           Control.Concurrent.MVar    (newMVar, withMVar)
+import           Data.Aeson                 (FromJSON(..), ToJSON(..), (.:), (.=), object, Value(..))
 import qualified Data.ByteString.Char8      as S8
-import           Data.ByteString.Conversion
-import           Data.Maybe (fromMaybe)
+import           Data.ByteString.Conversion (toByteString')
+import           Data.Maybe                 (fromMaybe)
 import qualified Data.Text.Encoding         as E
-import           Data.Text (Text)
+import           Data.Text                  (Text)
 import           Network.HTTP.Simple
 import           Network.HTTP.Client
-import           Twitter.Config
-import           Twitter.Model
-import           Control.Concurrent.MVar (newMVar, withMVar)
+import           Twitter.Config             (Config, twitterEncKey)
+import           Twitter.Model              (UserTimeLine)
+import           Twitter.Service            (Handle(..), TimeLineRequest(..), execute)
 
 data Token = Token { tokenType :: Text, accessToken :: Text } deriving (Generic, Show)
 
@@ -28,14 +28,14 @@ instance FromJSON Token where
 instance ToJSON Token where
     toJSON (Token tokenType accessToken) = object ["token_type" .= tokenType, "access_token" .= accessToken]
 
-consumerEnc :: IO S8.ByteString
-consumerEnc = do
-  c <- config
-  return (twitterEncKey c)
+type ServiceResponse = Handle TimeLineRequest UserTimeLine
 
-bearer :: IO Token
-bearer = do
-    token <- consumerEnc
+consumerEnc :: Config -> IO S8.ByteString
+consumerEnc config = return $ twitterEncKey config
+
+bearer :: Config -> IO Token
+bearer config = do
+    token <- consumerEnc config
     request' <- parseRequest "https://api.twitter.com"
     let request
             = setRequestMethod "POST"
@@ -48,31 +48,30 @@ bearer = do
     response <- httpJSON request
     return (getResponseBody response :: Token)
 
-userTimeline :: Text -> Maybe Int -> IO [Tweet]
-userTimeline name limit = do
-    token <- bearer
+userTimeline :: Config -> TimeLineRequest -> IO UserTimeLine
+userTimeline config timelineReq = do
+    token <- bearer config
     request' <- parseRequest "https://api.twitter.com"
     let request
             = setRequestMethod "GET"
             $ setRequestHeader "Authorization" [S8.concat ["Bearer ", E.encodeUtf8 (accessToken token)]]
             $ setRequestPath "/1.1/statuses/user_timeline.json"
-            $ setQueryString [("screen_name", Just (E.encodeUtf8 name)), ("count", Just (toByteString' $ fromMaybe 10 limit))]
+            $ setQueryString [("screen_name", Just (E.encodeUtf8 (userName timelineReq))), ("count", Just (toByteString' $ fromMaybe 10 (limit timelineReq)))]
             $ setRequestSecure True
             $ setRequestPort 443 request'
     response <- httpJSON request
-    return (getResponseBody response :: [Tweet])
+    return (getResponseBody response :: UserTimeLine)
 
-type ServiceResponse = Service.Handle [Tweet]
 
 -- | Create a new 'Service.Handle' that calls to twitter api.
-newHandle :: IO ServiceResponse
-newHandle = do
+newHandle :: Config -> IO ServiceResponse
+newHandle config = do
     -- We use a mutex to make our logger thread-safe.
     -- (Note that we should take this mutex as an argument for maximal
     -- compositionality.)
     mutex <- newMVar ()
 
-    return Service.Handle
-      { Service.execute = \userName limit ->
-            withMVar mutex $ \() -> userTimeline userName limit
+    return Handle
+      { execute = \timelineReq ->
+            withMVar mutex $ \() -> userTimeline config timelineReq
       }

@@ -60,11 +60,8 @@ twitterEncKey conf = B.encode byteStr
 lookOrDefault :: String -> String -> IO String
 lookOrDefault key def = fmap (maybe def id) (lookupEnv key)
 
-lookOrDefaultRead :: Read a => String -> a -> IO a
-lookOrDefaultRead key def = fmap (maybe def read) (lookupEnv key)
-
 getEnvironment :: IO Environment
-getEnvironment = lookOrDefaultRead "TWITTER_ENV" Development
+getEnvironment = fmap read $ lookOrDefault "TWITTER_ENV" "Development"
 
 getTwitterConf :: IO TwitterConf
 getTwitterConf = do

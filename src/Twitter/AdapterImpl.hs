@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
-module Twitter.ServiceImpl (
+module Twitter.AdapterImpl (
 newHandle
 ) where
 
@@ -17,7 +17,7 @@ import           Network.HTTP.Simple
 import           Network.HTTP.Client
 import           Twitter.Config             (Config, twitterEncKey)
 import           Twitter.Model              (UserTimeLine)
-import           Twitter.Service            (Handle(..), TimeLineRequest(..), execute)
+import           Twitter.Adapter            (Handle(..), TimeLineRequest(..), execute)
 
 data Token = Token { tokenType :: Text, accessToken :: Text } deriving (Generic, Show)
 

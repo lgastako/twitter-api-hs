@@ -4,7 +4,8 @@
 
 module Twitter.Model (
 Tweet(text,userName,createdAt,retweetCount,favoriteCount),
-UserTimeLine
+UserTimeLine,
+createTweet
 ) where
 
 import           GHC.Generics                 (Generic)
@@ -37,5 +38,8 @@ parseDate :: String -> Maybe UTCTime
 parseDate date = parseTimeM True defaultTimeLocale "%a %h %d %T +0000 %Y" date :: Maybe UTCTime
 
 instance ToJSON Tweet
+
+createTweet :: Text -> Text -> Maybe UTCTime -> Int -> Int -> Tweet
+createTweet text userName createdAt retweetCount favoriteCount = Tweet{..}
 
 type UserTimeLine = [Tweet]

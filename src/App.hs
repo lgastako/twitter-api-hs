@@ -17,8 +17,7 @@ import           Network.Wai.Middleware.RequestLogger (logStdout, logStdoutDev)
 import           Web.Scotty.Trans                     (ActionT, Options, ScottyT, scottyAppT, defaultHandler, get, json, rescue, middleware, notFound, param, scottyOptsT, settings, showError, status, verbose)
 import           Twitter.Config                       (ConfigM, Config(..), Environment(..), runConfigM, getConfig, twitterEncKey)
 import           Twitter.Model                        (UserTimeLine)
-import           Twitter.Service                      (timeline, createTimeLineRequest)
-import           Twitter.ServiceImpl                  (newHandle)
+import           Twitter.Service                      (getUserTimeline)
 
 
 type Error = Text
@@ -92,9 +91,7 @@ userTimelineAction = do
   config <- lift ask
   userName <- param "userName"
   limit :: Int <- param "limit" `rescue` (\x -> return 10)
-  timeline <- liftIO $ do
-    service <- newHandle config
-    timeline service (createTimeLineRequest userName (Just limit))
+  timeline <- liftIO $ getUserTimeline config userName (Just limit)
   json (timeline :: UserTimeLine)
 
 notFoundA :: Action

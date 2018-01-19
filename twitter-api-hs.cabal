@@ -17,10 +17,11 @@ library
   hs-source-dirs:      src
                      , src/Twitter
   exposed-modules:     App
+                     , Twitter.Adapter
+                     , Twitter.AdapterImpl
                      , Twitter.Config
                      , Twitter.Model
                      , Twitter.Service
-                     , Twitter.ServiceImpl
   build-depends:       base >= 4.7 && < 5
                      , aeson
                      , base64-bytestring

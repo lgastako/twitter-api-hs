@@ -11,7 +11,7 @@ twitterEncKey
 
 import           Data.Aeson
 import           System.Environment         (lookupEnv)
-import           Control.Applicative        (Applicative)
+import           Control.Applicative        (Applicative,(<*>),liftA2)
 import           Control.Monad.IO.Class     (MonadIO)
 import           Control.Monad.Reader       (MonadReader, ReaderT)
 import           Control.Monad.Trans.Class  (MonadTrans)
@@ -39,8 +39,8 @@ newtype ConfigM a = ConfigM
   } deriving (Applicative, Functor, Monad, MonadIO, MonadReader Config)
 
 data TwitterConf = TwitterConf {
-  consumerKey :: String,
-  consumerSecret :: String
+  consumerKey :: Maybe String,
+  consumerSecret :: Maybe String
 }
 
 getConfig :: IO Config
@@ -49,22 +49,22 @@ getConfig = do
   twitter <- getTwitterConf
   return Config{..}
 
-twitterEncKey :: Config -> S8.ByteString
-twitterEncKey conf = B.encode byteStr
-    where byteStr = toByteString' concatedKey
-          concatedKey = key ++ ":" ++ secret
-          twitterConf = twitter conf
-          key = consumerKey twitterConf
-          secret = consumerSecret twitterConf
+concatKeySecret :: Config -> Maybe String
+concatKeySecret conf = liftA2 (++) ((++) <$> key <*> (Just ":")) secret
+  where twitterConf = twitter conf
+        key = consumerKey twitterConf
+        secret = consumerSecret twitterConf
 
-lookOrDefault :: String -> String -> IO String
-lookOrDefault key def = fmap (maybe def id) (lookupEnv key)
+twitterEncKey :: Config -> Maybe S8.ByteString
+twitterEncKey conf = do
+  key <- concatKeySecret conf
+  return $ B.encode (toByteString' key)
 
 getEnvironment :: IO Environment
-getEnvironment = fmap read $ lookOrDefault "TWITTER_ENV" "Development"
+getEnvironment = (maybe Development read) <$> (lookupEnv "TWITTER_ENV")
 
 getTwitterConf :: IO TwitterConf
 getTwitterConf = do
-  consumerKey <- lookOrDefault "TWITTER_CONSUMER_KEY" ""
-  consumerSecret <- lookOrDefault "TWITTER_CONSUMER_SECRET" ""
+  consumerKey <- lookupEnv "TWITTER_CONSUMER_KEY"
+  consumerSecret <- lookupEnv "TWITTER_CONSUMER_SECRET"
   return TwitterConf{..}

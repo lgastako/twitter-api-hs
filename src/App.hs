@@ -92,7 +92,7 @@ userTimelineAction = do
   userName <- param "userName"
   limit :: Int <- param "limit" `rescue` (\x -> return 10)
   timeline <- liftIO $ getUserTimeline config userName (Just limit)
-  json (timeline :: UserTimeLine)
+  either json json timeline
 
 notFoundA :: Action
 notFoundA = do

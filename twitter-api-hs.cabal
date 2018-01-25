@@ -28,6 +28,7 @@ library
                      , bytestring
                      , bytestring-conversion
                      , data-default
+                     , either
                      , http-client
                      , http-conduit
                      , http-types

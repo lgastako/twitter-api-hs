@@ -3,6 +3,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 
 module Twitter.Model (
+TwitterError(..),
 Tweet(text,userName,createdAt,retweetCount,favoriteCount),
 UserTimeLine,
 createTweet
@@ -10,8 +11,8 @@ createTweet
 
 import           GHC.Generics                 (Generic)
 import           Control.Applicative          ((<$>),(<*>),empty)
-import           Data.Aeson                   (Value(..), FromJSON(..), ToJSON(..), (.:))
-import           Data.Text                    (Text)
+import           Data.Aeson                   (Value(..), FromJSON(..), ToJSON(..), (.:), (.=), object)
+import           Data.Text                    (Text, pack)
 import           Data.Time.Format             (parseTimeM, defaultTimeLocale)
 import           Data.Time.Clock              (UTCTime)
 
@@ -34,12 +35,20 @@ instance FromJSON Tweet where
       return Tweet{..}
     parseJSON _          = empty
 
+instance ToJSON Tweet
+
+type UserTimeLine = [Tweet]
+
+data TwitterError = RequestError
+                  | CredentialsError
+                  | APIError
+                  deriving (Show, Eq)
+
+instance ToJSON TwitterError where
+  toJSON val = object [ "error" .= String (pack $ show val) ]
+
 parseDate :: String -> Maybe UTCTime
 parseDate date = parseTimeM True defaultTimeLocale "%a %h %d %T +0000 %Y" date :: Maybe UTCTime
 
-instance ToJSON Tweet
-
 createTweet :: Text -> Text -> Maybe UTCTime -> Int -> Int -> Tweet
 createTweet text userName createdAt retweetCount favoriteCount = Tweet{..}
-
-type UserTimeLine = [Tweet]

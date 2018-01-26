@@ -13,7 +13,7 @@ import           Control.Monad.Trans.Maybe  (MaybeT(..))
 import           Data.Aeson                 (FromJSON(..), ToJSON(..), (.:), (.=), object, Value(..))
 import qualified Data.ByteString.Char8      as S8
 import           Data.ByteString.Conversion (toByteString')
-import           Data.Maybe                 (fromMaybe)
+import           Data.Maybe                 (fromMaybe, fromJust)
 import           Data.Either                (fromLeft, either)
 import qualified Data.Text.Encoding         as E
 import           Data.Text                  (Text)
@@ -21,8 +21,8 @@ import           Network.HTTP.Simple
 import           Network.HTTP.Client
 import           Core.Utils                 (fromMaybeT,maybeToLeft)
 import           Twitter.Config             (Config, twitterEncKey)
-import           Twitter.Model              (UserTimeLine,TwitterError(..))
-import           Twitter.Adapter            (Handle(..), TimeLineRequest(..), execute)
+import           Twitter.Model              (UserTimeLine,TwitterError,createError,credentialError,apiError)
+import           Twitter.Adapter            (Handle(..), TwitterHandle, TimeLineRequest(..), execute)
 
 data Token = Token { tokenType :: Text, accessToken :: Text } deriving (Generic, Show)
 
@@ -33,26 +33,16 @@ instance FromJSON Token where
 instance ToJSON Token where
     toJSON (Token tokenType accessToken) = object ["token_type" .= tokenType, "access_token" .= accessToken]
 
-type ServiceResponse = Handle TimeLineRequest TwitterError UserTimeLine
-
-mapStatusCode :: Int -> Maybe TwitterError
-mapStatusCode code | code < 400 = Nothing
-mapStatusCode 400 = Just RequestError
-mapStatusCode 404 = Just RequestError
-mapStatusCode 401 = Just CredentialsError
-mapStatusCode 403 = Just CredentialsError
-mapStatusCode _   = Just APIError
-
 extractResponse :: (FromJSON a) => Request -> IO (Either TwitterError a)
 extractResponse request = do
   response <- httpJSONEither request
-  let onError   _    = Left APIError
-      onSuccess resp = maybeToLeft resp (mapStatusCode (getResponseStatusCode response))
-      in return $ either onError onSuccess (getResponseBody response)          
+  let onError   _    = Left $ fromJust (createError (getResponseStatusCode response))
+      onSuccess resp = maybeToLeft resp (createError (getResponseStatusCode response))
+      in return $ either onError onSuccess (getResponseBody response)
 
 requestBearer :: Config -> IO (Either TwitterError Token)
 requestBearer config = do
-    fromMaybeT (return $ Left CredentialsError) $ do
+    fromMaybeT (return $ Left $ credentialError) $ do
       key <- MaybeT (return $ twitterEncKey config)
       liftIO $ do
         request' <- parseRequest "https://api.twitter.com"
@@ -83,12 +73,12 @@ requestUserTimeline timelineReq token = do
 userTimeline :: Config -> TimeLineRequest -> IO (Either TwitterError UserTimeLine)
 userTimeline config timelineReq = do
   val <- requestBearer config
-  let extractError   _      = return $ Left (fromLeft CredentialsError val)
+  let extractError   _      = return $ Left (fromLeft credentialError val)
       performRequest bearer = requestUserTimeline timelineReq bearer
       in either extractError performRequest val
 
 -- | Create a new 'Service.Handle' that calls to twitter api.
-newHandle :: Config -> IO ServiceResponse
+newHandle :: Config -> IO TwitterHandle
 newHandle config = do
     -- We use a mutex to make our logger thread-safe.
     -- (Note that we should take this mutex as an argument for maximal

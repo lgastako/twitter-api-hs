@@ -4,19 +4,20 @@
 
 module App (runApp, app) where
 
-import           Data.Text.Lazy                       (Text)
-import           Data.Default                         (def)
-import           Data.Aeson                           (Value(..), object, (.=))
 import           Control.Monad.IO.Class               (liftIO)
 import           Control.Monad.Reader                 (runReaderT, asks, lift)
 import           Control.Monad.Reader.Class           (ask)
-import           Network.HTTP.Types.Status            (created201, internalServerError500, notFound404)
+import           Data.Aeson                           (Value(..), object, (.=))
+import           Data.ByteString.Char8                (pack)
+import           Data.Default                         (def)
+import           Data.Text.Lazy                       (Text)
+import           Network.HTTP.Types.Status            (created201, internalServerError500, notFound404, mkStatus)
 import           Network.Wai                          (Application, Middleware)
 import           Network.Wai.Handler.Warp             (Settings, defaultSettings, setFdCacheDuration, setPort)
 import           Network.Wai.Middleware.RequestLogger (logStdout, logStdoutDev)
 import           Web.Scotty.Trans                     (ActionT, Options, ScottyT, scottyAppT, defaultHandler, get, json, rescue, middleware, notFound, param, scottyOptsT, settings, showError, status, verbose)
 import           Twitter.Config                       (ConfigM, Config(..), Environment(..), runConfigM, getConfig, twitterEncKey)
-import           Twitter.Model                        (UserTimeLine)
+import           Twitter.Model                        (UserTimeLine,TwitterError(..))
 import           Twitter.Service                      (getUserTimeline)
 
 
@@ -92,7 +93,8 @@ userTimelineAction = do
   userName <- param "userName"
   limit :: Int <- param "limit" `rescue` (\x -> return 10)
   timeline <- liftIO $ getUserTimeline config userName (Just limit)
-  either json json timeline
+  let statusAndResponse err = status (mkStatus (code err) (pack $ show err)) >> json err
+      in either statusAndResponse json timeline
 
 notFoundA :: Action
 notFoundA = do

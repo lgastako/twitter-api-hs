@@ -8,18 +8,18 @@ newHandle
 import           GHC.Generics               (Generic)
 import           Control.Applicative        ((<$>), (<*>), empty)
 import           Control.Concurrent.MVar    (newMVar, withMVar)
-import           Control.Monad              ((<=<))
 import           Control.Monad.Trans        (liftIO)
-import           Control.Monad.Trans.Maybe
+import           Control.Monad.Trans.Maybe  (MaybeT(..))
 import           Data.Aeson                 (FromJSON(..), ToJSON(..), (.:), (.=), object, Value(..))
 import qualified Data.ByteString.Char8      as S8
 import           Data.ByteString.Conversion (toByteString')
 import           Data.Maybe                 (fromMaybe)
-import           Data.Either                (fromLeft)
+import           Data.Either                (fromLeft, either)
 import qualified Data.Text.Encoding         as E
 import           Data.Text                  (Text)
 import           Network.HTTP.Simple
 import           Network.HTTP.Client
+import           Core.Utils                 (fromMaybeT,maybeToLeft)
 import           Twitter.Config             (Config, twitterEncKey)
 import           Twitter.Model              (UserTimeLine,TwitterError(..))
 import           Twitter.Adapter            (Handle(..), TimeLineRequest(..), execute)
@@ -46,14 +46,9 @@ mapStatusCode _   = Just APIError
 extractResponse :: (FromJSON a) => Request -> IO (Either TwitterError a)
 extractResponse request = do
   response <- httpJSONEither request
-  return $ case getResponseBody response of
-    Left  _    -> Left APIError
-    Right resp -> case mapStatusCode (getResponseStatusCode response) of
-      Nothing -> Right resp
-      Just e  -> Left e
-
-fromMaybeT :: (Monad m) => m a -> MaybeT m a -> m a
-fromMaybeT onFail = maybe onFail return <=< runMaybeT
+  let onError   _    = Left APIError
+      onSuccess resp = maybeToLeft resp (mapStatusCode (getResponseStatusCode response))
+      in return $ either onError onSuccess (getResponseBody response)          
 
 requestBearer :: Config -> IO (Either TwitterError Token)
 requestBearer config = do
@@ -88,9 +83,9 @@ requestUserTimeline timelineReq token = do
 userTimeline :: Config -> TimeLineRequest -> IO (Either TwitterError UserTimeLine)
 userTimeline config timelineReq = do
   val <- requestBearer config
-  case val of
-    Left e  -> return $ Left (fromLeft CredentialsError val)
-    Right bearer -> requestUserTimeline timelineReq bearer
+  let extractError   _      = return $ Left (fromLeft CredentialsError val)
+      performRequest bearer = requestUserTimeline timelineReq bearer
+      in either extractError performRequest val
 
 -- | Create a new 'Service.Handle' that calls to twitter api.
 newHandle :: Config -> IO ServiceResponse

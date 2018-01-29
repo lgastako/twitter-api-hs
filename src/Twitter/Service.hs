@@ -9,6 +9,7 @@ import           Control.Monad.Trans.Maybe (MaybeT (..))
 import           Data.Maybe                (fromJust)
 import           Data.Text                 (Text)
 import           Twitter.Adapter           (Handle, TimeLineRequest,
+                                            TwitterHandle,
                                             createTimeLineRequest, timeline)
 import           Twitter.CacheAdapter      as CA
 import           Twitter.Config            (Config)
@@ -20,11 +21,15 @@ class Monad m => TwitterService m where
 
 instance TwitterService IO where
   getTimeLine config request = do
-    twitterApi <- TA.newHandle config
-    cache      <- CA.newHandle config
-    result     <- runMaybeT $  MaybeT (timeline cache request)
-                           <|> MaybeT (timeline twitterApi request)
+    result     <- runMaybeT $  MaybeT (getFromCache config request)
+                           <|> MaybeT (getFromTwitter config request)
     return $ fromJust result
+
+getFromCache :: Config -> TimeLineRequest -> IO (Maybe (Either TwitterError UserTimeLine))
+getFromCache config req = CA.newHandle config >>= flip timeline req
+
+getFromTwitter :: Config -> TimeLineRequest -> IO (Maybe (Either TwitterError UserTimeLine))
+getFromTwitter config req = TA.newHandle config >>= flip timeline req
 
 getUserTimeline :: TwitterService m => Config -> Text -> Maybe Int -> m (Either TwitterError UserTimeLine)
 getUserTimeline config userName limit = getTimeLine config (createTimeLineRequest userName limit)

@@ -7,6 +7,8 @@ newHandle
 
 import           Control.Applicative        (empty, (<$>), (<*>))
 import           Control.Concurrent.MVar    (newMVar, withMVar)
+import           Control.Monad              (mplus)
+import           Control.Monad.Except       (ExceptT (..), runExceptT)
 import           Control.Monad.Trans        (liftIO)
 import           Control.Monad.Trans.Maybe  (MaybeT (..))
 import           Core.Utils                 (fromMaybeT, maybeToLeft)
@@ -87,11 +89,9 @@ cacheResult config username timeline = do
       _                   -> return ()
 
 userTimeline :: Config -> TimeLineRequest -> TimeLineResponse
-userTimeline config timelineReq = do
-  val <- requestBearer config
-  let extractError   _      = return $ Left (fromLeft credentialError val)
-      performRequest = requestUserTimeline timelineReq
-      in either extractError performRequest val
+userTimeline config timelineReq = runExceptT $ do
+  bearer <- ExceptT $ requestBearer config
+  ExceptT $ requestUserTimeline timelineReq bearer
 
 -- | Create a new 'Service.Handle' that calls to twitter api.
 newHandle :: Config -> IO TwitterHandle

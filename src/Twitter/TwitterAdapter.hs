@@ -93,12 +93,9 @@ userTimeline config timelineReq = runExceptT $ do
   bearer <- ExceptT $ requestBearer config
   ExceptT $ requestUserTimeline timelineReq bearer
 
--- | Create a new 'Service.Handle' that calls to twitter api.
+-- | Create a new 'Twitter.Adapter.Handle' that calls to twitter api.
 newHandle :: Config -> IO TwitterHandle
 newHandle config = do
-    -- We use a mutex to make our logger thread-safe.
-    -- (Note that we should take this mutex as an argument for maximal
-    -- compositionality.)
     mutex <- newMVar ()
 
     return Handle

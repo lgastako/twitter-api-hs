@@ -9,6 +9,7 @@ module Twitter.Adapter
     Handle(..)
   , TwitterHandle
   , TimeLineRequest(userName,limit)
+  , TwitterResponse
   , createTimeLineRequest
   , timeline
   ) where
@@ -16,14 +17,18 @@ module Twitter.Adapter
 import           Data.Text         (Text)
 import           Twitter.Model     (UserTimeLine, TwitterError)
 
-newtype Handle a e b = Handle { execute :: a -> IO (Either e b) }
+type HandleResponse e a = IO (Maybe (Either e a))
+
+newtype Handle a e b = Handle { execute :: a -> HandleResponse e b }
 
 type TwitterHandle = Handle TimeLineRequest TwitterError UserTimeLine
+
+type TwitterResponse = HandleResponse TwitterError UserTimeLine
 
 data TimeLineRequest = TimeLineRequest { userName :: Text, limit :: Maybe Int }
 
 createTimeLineRequest :: Text -> Maybe Int -> TimeLineRequest
 createTimeLineRequest userName limit = TimeLineRequest{..}
 
-timeline :: TwitterHandle -> TimeLineRequest -> IO (Either TwitterError UserTimeLine)
+timeline :: TwitterHandle -> TimeLineRequest -> TwitterResponse
 timeline = execute

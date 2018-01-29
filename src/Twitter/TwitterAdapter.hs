@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module Twitter.AdapterImpl (
+module Twitter.TwitterAdapter (
 newHandle
 ) where
 
@@ -22,7 +22,7 @@ import           Network.HTTP.Client
 import           Core.Utils                 (fromMaybeT,maybeToLeft)
 import           Twitter.Config             (Config, twitterEncKey)
 import           Twitter.Model              (UserTimeLine,TwitterError,createError,credentialError,apiError)
-import           Twitter.Adapter            (Handle(..), TwitterHandle, TimeLineRequest(..), execute)
+import           Twitter.Adapter            (Handle(..), TwitterHandle, TimeLineRequest(..), TwitterResponse, execute)
 
 data Token = Token { tokenType :: Text, accessToken :: Text } deriving (Generic, Show)
 
@@ -33,14 +33,18 @@ instance FromJSON Token where
 instance ToJSON Token where
     toJSON (Token tokenType accessToken) = object ["token_type" .= tokenType, "access_token" .= accessToken]
 
-extractResponse :: (FromJSON a) => Request -> IO (Either TwitterError a)
+type ApiResponse a = IO (Either TwitterError a)
+type TokenResponse = ApiResponse Token
+type TimeLineResponse = ApiResponse UserTimeLine
+
+extractResponse :: (FromJSON a) => Request -> ApiResponse a
 extractResponse request = do
   response <- httpJSONEither request
   let onError   _    = Left $ fromJust (createError (getResponseStatusCode response))
       onSuccess resp = maybeToLeft resp (createError (getResponseStatusCode response))
       in return $ either onError onSuccess (getResponseBody response)
 
-requestBearer :: Config -> IO (Either TwitterError Token)
+requestBearer :: Config -> TokenResponse
 requestBearer config = do
     fromMaybeT (return $ Left $ credentialError) $ do
       key <- MaybeT (return $ twitterEncKey config)
@@ -57,7 +61,7 @@ requestBearer config = do
         extractResponse request
 
 
-requestUserTimeline :: TimeLineRequest -> Token -> IO (Either TwitterError UserTimeLine)
+requestUserTimeline :: TimeLineRequest -> Token -> TimeLineResponse
 requestUserTimeline timelineReq token = do
     request' <- parseRequest "https://api.twitter.com"
     let request
@@ -70,7 +74,7 @@ requestUserTimeline timelineReq token = do
     extractResponse request
 
 
-userTimeline :: Config -> TimeLineRequest -> IO (Either TwitterError UserTimeLine)
+userTimeline :: Config -> TimeLineRequest -> TimeLineResponse
 userTimeline config timelineReq = do
   val <- requestBearer config
   let extractError   _      = return $ Left (fromLeft credentialError val)
@@ -87,5 +91,7 @@ newHandle config = do
 
     return Handle
       { execute = \timelineReq ->
-            withMVar mutex $ \() -> userTimeline config timelineReq
+            withMVar mutex $ \() -> do
+              timeline <- userTimeline config timelineReq
+              return $ (Just timeline)
       }

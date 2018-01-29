@@ -13,6 +13,12 @@ I am going to evolve the app to achieve the following results:
 - Learn [Service Pattern](https://www.schoolofhaskell.com/user/meiersi/the-service-pattern)
 - Learn integration with build tools Stack and Nix
 
+## TODO
+
+- Improve types
+- Add Monad Transformer Stack to pass config, logger and other down
+- Testing
+
 ## Run
 
 ### Prerequisites

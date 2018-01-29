@@ -1,7 +1,7 @@
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE RecordWildCards    #-}
 
 module Twitter.Model (
 TwitterError(..),
@@ -13,21 +13,22 @@ credentialError,
 apiError
 ) where
 
-import           GHC.Generics                 (Generic)
-import           Control.Applicative          ((<$>),(<*>),empty)
-import           Data.Aeson                   (Value(..), FromJSON(..), ToJSON(..), (.:), (.=), object)
+import           Control.Applicative (empty, (<$>), (<*>))
+import           Data.Aeson          (FromJSON (..), ToJSON (..), Value (..),
+                                      object, (.:), (.=))
 import           Data.Data
-import           Data.Maybe                   (fromJust)
-import           Data.Text                    (Text, pack)
-import           Data.Time.Format             (parseTimeM, defaultTimeLocale)
-import           Data.Time.Clock              (UTCTime)
+import           Data.Maybe          (fromJust)
+import           Data.Text           (Text, pack)
+import           Data.Time.Clock     (UTCTime)
+import           Data.Time.Format    (defaultTimeLocale, parseTimeM)
 import           Data.Typeable
+import           GHC.Generics        (Generic)
 
 data Tweet = Tweet {
-  text :: Text,
-  userName :: Text,
-  createdAt :: Maybe UTCTime,
-  retweetCount :: Int,
+  text          :: Text,
+  userName      :: Text,
+  createdAt     :: Maybe UTCTime,
+  retweetCount  :: Int,
   favoriteCount :: Int
 } deriving (Generic, Show)
 
@@ -55,7 +56,7 @@ instance Show TwitterError where
    show = showConstr . toConstr
 
 instance ToJSON TwitterError where
-  toJSON val = object [ "error" .= object [ "code" .= (code val), "message" .= String (pack $ show val)] ]
+  toJSON val = object [ "error" .= object [ "code" .= code val, "message" .= String (pack $ show val)] ]
 
 parseDate :: String -> Maybe UTCTime
 parseDate date = parseTimeM True defaultTimeLocale "%a %h %d %T +0000 %Y" date :: Maybe UTCTime

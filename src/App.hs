@@ -1,24 +1,39 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module App (runApp, app) where
 
 import           Control.Monad.IO.Class               (liftIO)
-import           Control.Monad.Reader                 (runReaderT, asks, lift)
+import           Control.Monad.Reader                 (asks, lift, runReaderT)
 import           Control.Monad.Reader.Class           (ask)
-import           Data.Aeson                           (Value(..), object, (.=))
+import           Data.Aeson                           (Value (..), object, (.=))
 import           Data.ByteString.Char8                (pack)
 import           Data.Default                         (def)
 import           Data.Text.Lazy                       (Text)
-import           Network.HTTP.Types.Status            (created201, internalServerError500, notFound404, mkStatus)
+import           Network.HTTP.Types.Status            (created201,
+                                                       internalServerError500,
+                                                       mkStatus, notFound404)
 import           Network.Wai                          (Application, Middleware)
-import           Network.Wai.Handler.Warp             (Settings, defaultSettings, setFdCacheDuration, setPort)
+import           Network.Wai.Handler.Warp             (Settings,
+                                                       defaultSettings,
+                                                       setFdCacheDuration,
+                                                       setPort)
 import           Network.Wai.Middleware.RequestLogger (logStdout, logStdoutDev)
-import           Web.Scotty.Trans                     (ActionT, Options, ScottyT, scottyAppT, defaultHandler, get, json, rescue, middleware, notFound, param, scottyOptsT, settings, showError, status, verbose)
-import           Twitter.Config                       (ConfigM, Config(..), Environment(..), runConfigM, getConfig, twitterEncKey)
-import           Twitter.Model                        (UserTimeLine,TwitterError(..))
+import           Twitter.Config                       (Config (..), ConfigM,
+                                                       Environment (..),
+                                                       getConfig, runConfigM,
+                                                       twitterEncKey)
+import           Twitter.Model                        (TwitterError (..),
+                                                       UserTimeLine)
 import           Twitter.Service                      (getUserTimeline)
+import           Web.Scotty.Trans                     (ActionT, Options,
+                                                       ScottyT, defaultHandler,
+                                                       get, json, middleware,
+                                                       notFound, param, rescue,
+                                                       scottyAppT, scottyOptsT,
+                                                       settings, showError,
+                                                       status, verbose)
 
 
 type Error = Text
@@ -29,8 +44,8 @@ getSettings e = do
    let s = defaultSettings
        s' = case e of
          Development -> setFdCacheDuration 0 s
-         Production -> s
-         Test -> s
+         Production  -> s
+         Test        -> s
        s'' = setPort 8080 s'
    return s''
 
@@ -41,8 +56,8 @@ getOptions e = do
      { settings = s
      , verbose = case e of
        Development -> 1
-       Production -> 0
-       Test -> 0
+       Production  -> 0
+       Test        -> 0
      }
 
 defaultH :: Error -> Action
@@ -51,8 +66,8 @@ defaultH x = do
   status internalServerError500
   let o = case e of
         Development -> object ["error" .= showError x]
-        Production -> Null
-        Test -> object ["error" .= showError x]
+        Production  -> Null
+        Test        -> object ["error" .= showError x]
   json o
 
 loggingM :: Environment -> Middleware

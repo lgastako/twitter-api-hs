@@ -1,29 +1,34 @@
+{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
 
 module Twitter.TwitterAdapter (
 newHandle
 ) where
 
-import           GHC.Generics               (Generic)
-import           Control.Applicative        ((<$>), (<*>), empty)
+import           Control.Applicative        (empty, (<$>), (<*>))
 import           Control.Concurrent.MVar    (newMVar, withMVar)
 import           Control.Monad.Trans        (liftIO)
-import           Control.Monad.Trans.Maybe  (MaybeT(..))
-import           Data.Aeson                 (FromJSON(..), ToJSON(..), (.:), (.=), object, Value(..))
+import           Control.Monad.Trans.Maybe  (MaybeT (..))
+import           Core.Utils                 (fromMaybeT, maybeToLeft)
+import           Data.Aeson                 (FromJSON (..), ToJSON (..),
+                                             Value (..), object, (.:), (.=))
 import qualified Data.ByteString.Char8      as S8
 import           Data.ByteString.Conversion (toByteString')
 import           Data.Cache                 as C (insert)
-import           Data.Maybe                 (fromMaybe, fromJust)
-import           Data.Either                (fromLeft, either)
-import qualified Data.Text.Encoding         as E
+import           Data.Either                (either, fromLeft)
+import           Data.Maybe                 (fromJust, fromMaybe)
 import           Data.Text                  (Text)
-import           Network.HTTP.Simple
+import qualified Data.Text.Encoding         as E
+import           GHC.Generics               (Generic)
 import           Network.HTTP.Client
-import           Core.Utils                 (fromMaybeT,maybeToLeft)
-import           Twitter.Config             (Config(..), twitterEncKey)
-import           Twitter.Model              (UserTimeLine,TwitterError,createError,credentialError,apiError)
-import           Twitter.Adapter            (Handle(..), TwitterHandle, TimeLineRequest(..), TwitterResponse, execute)
+import           Network.HTTP.Simple
+import           Twitter.Adapter            (Handle (..), TimeLineRequest (..),
+                                             TwitterHandle, TwitterResponse,
+                                             execute)
+import           Twitter.Config             (Config (..), twitterEncKey)
+import           Twitter.Model              (TwitterError, UserTimeLine,
+                                             apiError, createError,
+                                             credentialError)
 
 data Token = Token { tokenType :: Text, accessToken :: Text } deriving (Generic, Show)
 
@@ -46,8 +51,8 @@ extractResponse request = do
       in return $ either onError onSuccess (getResponseBody response)
 
 requestBearer :: Config -> TokenResponse
-requestBearer config = do
-    fromMaybeT (return $ Left $ credentialError) $ do
+requestBearer config =
+    fromMaybeT (return $ Left credentialError) $ do
       key <- MaybeT (return $ twitterEncKey config)
       liftIO $ do
         request' <- parseRequest "https://api.twitter.com"
@@ -85,7 +90,7 @@ userTimeline :: Config -> TimeLineRequest -> TimeLineResponse
 userTimeline config timelineReq = do
   val <- requestBearer config
   let extractError   _      = return $ Left (fromLeft credentialError val)
-      performRequest bearer = requestUserTimeline timelineReq bearer
+      performRequest = requestUserTimeline timelineReq
       in either extractError performRequest val
 
 -- | Create a new 'Service.Handle' that calls to twitter api.
@@ -101,5 +106,5 @@ newHandle config = do
             withMVar mutex $ \() -> do
               timeline <- userTimeline config timelineReq
               liftIO $ cacheResult config (userName timelineReq) timeline
-              return $ (Just timeline)
+              return $ Just timeline
       }

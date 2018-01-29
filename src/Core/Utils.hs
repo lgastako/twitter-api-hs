@@ -3,10 +3,10 @@ fromMaybeT,
 maybeToLeft
 ) where
 
-import           Control.Monad              ((<=<))
-import           Control.Monad.Trans.Maybe  (MaybeT, runMaybeT)
-import           Data.Maybe                 (fromMaybe,maybe)
-import           Data.Either                (fromLeft, either)
+import           Control.Monad             ((<=<))
+import           Control.Monad.Trans.Maybe (MaybeT, runMaybeT)
+import           Data.Either               (either, fromLeft)
+import           Data.Maybe                (fromMaybe, maybe)
 
 fromMaybeT :: (Monad m) => m a -> MaybeT m a -> m a
 fromMaybeT onFail = maybe onFail return <=< runMaybeT

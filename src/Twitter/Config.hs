@@ -1,6 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE RecordWildCards            #-}
 module Twitter.Config (
 ConfigM(..),
 Config(..),
@@ -9,19 +9,19 @@ getConfig,
 twitterEncKey
 ) where
 
-import           Control.Applicative        (Applicative,(<*>),liftA2)
+import           Control.Applicative        (Applicative, liftA2, (<*>))
 import           Control.Monad.IO.Class     (MonadIO)
 import           Control.Monad.Reader       (MonadReader, ReaderT)
 import           Control.Monad.Trans.Class  (MonadTrans)
-import           Data.Aeson                 (ToJSON, toJSON, object, (.=))
-import           Data.Cache                 (Cache, newCache)
+import           Data.Aeson                 (ToJSON, object, toJSON, (.=))
 import qualified Data.ByteString.Base64     as B
 import qualified Data.ByteString.Char8      as S8
 import           Data.ByteString.Conversion
+import           Data.Cache                 (Cache, newCache)
 import           Data.Maybe                 (maybe)
 import           Data.Text                  (Text)
-import           System.Environment         (lookupEnv)
 import           System.Clock               (fromNanoSecs)
+import           System.Environment         (lookupEnv)
 import           Twitter.Model              (UserTimeLine)
 
 
@@ -34,9 +34,9 @@ instance ToJSON Environment where
   toJSON e = object ["environment" .= show e]
 
 data Config = Config
-  { twitter :: TwitterConf
+  { twitter     :: TwitterConf
   , environment :: Environment
-  , cache :: Cache Text UserTimeLine
+  , cache       :: Cache Text UserTimeLine
   }
 
 newtype ConfigM a = ConfigM
@@ -44,7 +44,7 @@ newtype ConfigM a = ConfigM
   } deriving (Applicative, Functor, Monad, MonadIO, MonadReader Config)
 
 data TwitterConf = TwitterConf {
-  consumerKey :: Maybe String,
+  consumerKey    :: Maybe String,
   consumerSecret :: Maybe String
 }
 
@@ -56,7 +56,7 @@ getConfig = do
   return Config{..}
 
 concatKeySecret :: Config -> Maybe String
-concatKeySecret conf = liftA2 (++) ((++) <$> key <*> (Just ":")) secret
+concatKeySecret conf = liftA2 (++) ((++) <$> key <*> Just ":") secret
   where twitterConf = twitter conf
         key = consumerKey twitterConf
         secret = consumerSecret twitterConf
@@ -67,7 +67,7 @@ twitterEncKey conf = do
   return $ B.encode (toByteString' key)
 
 getEnvironment :: IO Environment
-getEnvironment = (maybe Development read) <$> (lookupEnv "TWITTER_ENV")
+getEnvironment = maybe Development read <$> lookupEnv "TWITTER_ENV"
 
 getTwitterConf :: IO TwitterConf
 getTwitterConf = do

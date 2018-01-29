@@ -1,20 +1,21 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
-
 module Twitter.CacheAdapter (
 newHandle
 ) where
 
-import Control.Monad.IO.Class  (liftIO)
-import Control.Concurrent.MVar (newMVar, withMVar)
-import Data.Cache              as C (lookup)
-import Data.Text               (Text)
-import Twitter.Config          (Config(..), twitterEncKey)
-import Twitter.Model           (UserTimeLine,TwitterError,createError,credentialError,apiError,createTweet)
-import Twitter.Adapter         (Handle(..), TwitterHandle, TimeLineRequest(..), TwitterResponse, execute)
+import           Control.Concurrent.MVar (newMVar, withMVar)
+import           Control.Monad.IO.Class  (liftIO)
+import           Data.Cache              as C (lookup)
+import           Data.Text               (Text)
+import           Twitter.Adapter         (Handle (..), TimeLineRequest (..),
+                                          TwitterHandle, TwitterResponse,
+                                          execute)
+import           Twitter.Config          (Config (..), twitterEncKey)
+import           Twitter.Model           (TwitterError, UserTimeLine, apiError,
+                                          createError, createTweet,
+                                          credentialError)
 
 readCache :: Config -> Text -> IO (Maybe UserTimeLine)
-readCache config username = (liftIO $ return $ cache config) >>= (flip C.lookup) username
+readCache config username = liftIO (return $ cache config) >>= flip C.lookup username
 
 cacheTimeLine :: Config -> TimeLineRequest -> TwitterResponse
 cacheTimeLine config req = do

@@ -29,6 +29,8 @@ library
                      , base64-bytestring
                      , bytestring
                      , bytestring-conversion
+                     , cache
+                     , clock
                      , data-default
                      , either
                      , http-client

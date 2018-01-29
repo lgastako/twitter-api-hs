@@ -13,6 +13,7 @@ import           Control.Monad.Trans.Maybe  (MaybeT(..))
 import           Data.Aeson                 (FromJSON(..), ToJSON(..), (.:), (.=), object, Value(..))
 import qualified Data.ByteString.Char8      as S8
 import           Data.ByteString.Conversion (toByteString')
+import           Data.Cache                 as C (insert)
 import           Data.Maybe                 (fromMaybe, fromJust)
 import           Data.Either                (fromLeft, either)
 import qualified Data.Text.Encoding         as E
@@ -20,7 +21,7 @@ import           Data.Text                  (Text)
 import           Network.HTTP.Simple
 import           Network.HTTP.Client
 import           Core.Utils                 (fromMaybeT,maybeToLeft)
-import           Twitter.Config             (Config, twitterEncKey)
+import           Twitter.Config             (Config(..), twitterEncKey)
 import           Twitter.Model              (UserTimeLine,TwitterError,createError,credentialError,apiError)
 import           Twitter.Adapter            (Handle(..), TwitterHandle, TimeLineRequest(..), TwitterResponse, execute)
 
@@ -73,6 +74,12 @@ requestUserTimeline timelineReq token = do
             $ setRequestPort 443 request'
     extractResponse request
 
+cacheResult :: Config -> Text -> Either TwitterError UserTimeLine -> IO ()
+cacheResult config username timeline = do
+    cacheEng <- liftIO $ return $ cache config
+    case timeline of
+      Right valueToCached -> insert cacheEng username valueToCached
+      _                   -> return ()
 
 userTimeline :: Config -> TimeLineRequest -> TimeLineResponse
 userTimeline config timelineReq = do
@@ -93,5 +100,6 @@ newHandle config = do
       { execute = \timelineReq ->
             withMVar mutex $ \() -> do
               timeline <- userTimeline config timelineReq
+              liftIO $ cacheResult config (userName timelineReq) timeline
               return $ (Just timeline)
       }

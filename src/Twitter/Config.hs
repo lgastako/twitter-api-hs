@@ -9,16 +9,20 @@ getConfig,
 twitterEncKey
 ) where
 
-import           Data.Aeson
-import           System.Environment         (lookupEnv)
 import           Control.Applicative        (Applicative,(<*>),liftA2)
 import           Control.Monad.IO.Class     (MonadIO)
 import           Control.Monad.Reader       (MonadReader, ReaderT)
 import           Control.Monad.Trans.Class  (MonadTrans)
-import           Data.Maybe                 (maybe)
+import           Data.Aeson                 (ToJSON, toJSON, object, (.=))
+import           Data.Cache                 (Cache, newCache)
 import qualified Data.ByteString.Base64     as B
 import qualified Data.ByteString.Char8      as S8
 import           Data.ByteString.Conversion
+import           Data.Maybe                 (maybe)
+import           Data.Text                  (Text)
+import           System.Environment         (lookupEnv)
+import           System.Clock               (fromNanoSecs)
+import           Twitter.Model              (UserTimeLine)
 
 
 data Environment = Development
@@ -32,6 +36,7 @@ instance ToJSON Environment where
 data Config = Config
   { twitter :: TwitterConf
   , environment :: Environment
+  , cache :: Cache Text UserTimeLine
   }
 
 newtype ConfigM a = ConfigM
@@ -46,7 +51,8 @@ data TwitterConf = TwitterConf {
 getConfig :: IO Config
 getConfig = do
   environment <- getEnvironment
-  twitter <- getTwitterConf
+  twitter     <- getTwitterConf
+  cache       <- newCache (Just (fromNanoSecs 30000000)) :: IO (Cache Text UserTimeLine)
   return Config{..}
 
 concatKeySecret :: Config -> Maybe String

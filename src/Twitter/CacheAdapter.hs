@@ -5,14 +5,26 @@ module Twitter.CacheAdapter (
 newHandle
 ) where
 
-import           Control.Concurrent.MVar    (newMVar, withMVar)
-import           Twitter.Config             (Config, twitterEncKey)
-import           Twitter.Model              (UserTimeLine,TwitterError,createError,credentialError,apiError,createTweet)
-import           Twitter.Adapter            (Handle(..), TwitterHandle, TimeLineRequest(..), TwitterResponse, execute)
+import Control.Monad.IO.Class  (liftIO)
+import Control.Concurrent.MVar (newMVar, withMVar)
+import Data.Cache              as C (lookup)
+import Data.Text               (Text)
+import Twitter.Config          (Config(..), twitterEncKey)
+import Twitter.Model           (UserTimeLine,TwitterError,createError,credentialError,apiError,createTweet)
+import Twitter.Adapter         (Handle(..), TwitterHandle, TimeLineRequest(..), TwitterResponse, execute)
+
+readCache :: Config -> Text -> IO (Maybe UserTimeLine)
+readCache config username = do
+  cacheEng <- liftIO $ return $ cache config
+  C.lookup cacheEng username
 
 cacheTimeLine :: Config -> TimeLineRequest -> TwitterResponse
--- cacheTimeLine _ _ = return $ Just (Right [createTweet "some" "myuser" Nothing 20 1])
-cacheTimeLine _ _ = return Nothing
+cacheTimeLine config req = do
+  maybeTimeLine <- liftIO $ readCache config (userName req)
+  liftIO $ putStrLn ("Cache Read: " ++ show maybeTimeLine)
+  let maybeToEither (Just val) = Just (Right val)
+      maybeToEither Nothing    = Nothing
+      in return $ maybeToEither maybeTimeLine
 
 newHandle :: Config -> IO TwitterHandle
 newHandle config = do

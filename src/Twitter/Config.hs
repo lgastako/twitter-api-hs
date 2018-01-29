@@ -52,7 +52,7 @@ getConfig :: IO Config
 getConfig = do
   environment <- getEnvironment
   twitter     <- getTwitterConf
-  cache       <- newCache (Just (fromNanoSecs 30000000)) :: IO (Cache Text UserTimeLine)
+  cache       <- newCache (Just (fromNanoSecs 30000000000)) :: IO (Cache Text UserTimeLine)
   return Config{..}
 
 concatKeySecret :: Config -> Maybe String

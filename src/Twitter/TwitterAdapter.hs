@@ -88,28 +88,28 @@ requestBearer config =
   fromMaybeT (return $ Left credentialError) $ do
     key <- MaybeT (return $ twitterEncKey config)
     liftIO $ do
-      request' <- parseRequest "https://api.twitter.com"
-      let request
+      request <- parseRequest "https://api.twitter.com"
+      let request'
               = setRequestMethod "POST"
               $ setRequestHeader "Authorization" [S8.concat ["Basic ", key]]
               $ setRequestHeader "Content-Type" ["application/x-www-form-urlencoded;charset=UTF-8"]
               $ setRequestPath "/oauth2/token"
               $ setRequestBodyLBS "grant_type=client_credentials"
               $ setRequestSecure True
-              $ setRequestPort 443 request'
-      extractResponse request
+              $ setRequestPort 443 request
+      extractResponse request'
 
 requestUserTimeline :: TimeLineRequest -> Token -> TimeLineResponse
 requestUserTimeline timelineReq token = do
-  request' <- parseRequest "https://api.twitter.com"
-  let request
+  request <- parseRequest "https://api.twitter.com"
+  let request'
           = setRequestMethod "GET"
           $ setRequestHeader "Authorization" [S8.concat ["Bearer ", E.encodeUtf8 (accessToken token)]]
           $ setRequestPath "/1.1/statuses/user_timeline.json"
           $ setQueryString [("screen_name", Just (E.encodeUtf8 (userName timelineReq))), ("count", Just (toByteString' $ fromMaybe 10 (limit timelineReq)))]
           $ setRequestSecure True
-          $ setRequestPort 443 request'
-  extractResponse request
+          $ setRequestPort 443 request
+  extractResponse request'
 
 cacheResult :: Config -> Text -> Either TwitterError UserTimeLine -> IO ()
 cacheResult config username = either (\_ -> return ()) (putInCache config username)

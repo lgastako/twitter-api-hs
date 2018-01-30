@@ -70,24 +70,24 @@ type Action = ActionT Error ConfigM ()
 
 getSettings :: Environment -> IO Settings
 getSettings e = do
-   let s = defaultSettings
-       s' = case e of
-         Development -> setFdCacheDuration 0 s
-         Production  -> s
-         Test        -> s
-       s'' = setPort 8080 s'
-   return s''
+  let s = defaultSettings
+      s' = case e of
+        Development -> setFdCacheDuration 0 s
+        Production  -> s
+        Test        -> s
+      s'' = setPort 8080 s'
+  return s''
 
 getOptions :: Environment -> IO Options
 getOptions e = do
-   s <- getSettings e
-   return def
-     { settings = s
-     , verbose = case e of
-       Development -> 1
-       Production  -> 0
-       Test        -> 0
-     }
+  s <- getSettings e
+  return def
+    { settings = s
+    , verbose = case e of
+      Development -> 1
+      Production  -> 0
+      Test        -> 0
+    }
 
 defaultH :: Error -> Action
 defaultH x = do
@@ -129,7 +129,11 @@ application e = do
   notFound notFoundA
 
 rootAction :: Action
-rootAction = json $ object ["endpoints" .= object ["user_timeline" .= String "/user/{userName}/timeline"] ]
+rootAction = json $ object
+  [ "endpoints" .= object
+    [ "user_timeline" .= String "/user/{userName}/timeline"
+    ]
+  ]
 
 userTimelineAction :: Action
 userTimelineAction = do

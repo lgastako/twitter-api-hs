@@ -33,9 +33,8 @@ cacheTimeLine config req = do
 
 newHandle :: Config -> IO TwitterHandle
 newHandle config = do
-    mutex <- newMVar ()
-
-    return Handle
-      { execute = \timelineReq ->
-            withMVar mutex $ \() -> cacheTimeLine config timelineReq
-      }
+  mutex <- newMVar ()
+  return Handle
+    { execute = \timelineReq ->
+        withMVar mutex $ \() -> cacheTimeLine config timelineReq
+    }

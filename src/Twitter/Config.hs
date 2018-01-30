@@ -40,13 +40,14 @@ import           System.Clock                     ( fromNanoSecs )
 import           System.Environment               ( lookupEnv )
 import           Twitter.Model                    ( UserTimeLine )
 
-data Environment = Development
-    | Production
-    | Test
-    deriving (Eq, Read, Show)
+data Environment
+  = Development
+  | Production
+  | Test
+  deriving (Eq, Read, Show)
 
 instance ToJSON Environment where
-  toJSON e = object ["environment" .= show e]
+  toJSON e = object [ "environment" .= show e ]
 
 data Config = Config
   { twitter     :: TwitterConf
@@ -58,10 +59,10 @@ newtype ConfigM a = ConfigM
   { runConfigM :: ReaderT Config IO a
   } deriving (Applicative, Functor, Monad, MonadIO, MonadReader Config)
 
-data TwitterConf = TwitterConf {
-  consumerKey    :: Maybe String,
-  consumerSecret :: Maybe String
-}
+data TwitterConf = TwitterConf
+  { consumerKey    :: Maybe String
+  , consumerSecret :: Maybe String
+  }
 
 readFromCache :: Config -> Text -> IO (Maybe UserTimeLine)
 readFromCache config = C.lookup (cache config)
@@ -78,9 +79,10 @@ getConfig = do
 
 concatKeySecret :: Config -> Maybe String
 concatKeySecret conf = liftA2 (++) ((++) <$> key <*> Just ":") secret
-  where twitterConf = twitter conf
-        key = consumerKey twitterConf
-        secret = consumerSecret twitterConf
+  where
+    twitterConf = twitter conf
+    key         = consumerKey twitterConf
+    secret      = consumerSecret twitterConf
 
 twitterEncKey :: Config -> Maybe S8.ByteString
 twitterEncKey conf = do

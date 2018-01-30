@@ -25,11 +25,11 @@ import Twitter.Model           ( TwitterError
                                )
 
 cacheTimeLine :: Config -> TimeLineRequest -> TwitterResponse
-cacheTimeLine config req = do
-  maybeTimeLine <- liftIO $ readFromCache config (userName req)
-  let maybeToEither (Just val) = Just (Right val)
-      maybeToEither Nothing    = Nothing
-  return $ maybeToEither maybeTimeLine
+cacheTimeLine config req =
+  maybeToEither <$> (liftIO $ readFromCache config (userName req))
+  where
+    maybeToEither (Just val) = Just (Right val)
+    maybeToEither Nothing    = Nothing
 
 newHandle :: Config -> IO TwitterHandle
 newHandle config = do

@@ -82,7 +82,7 @@ instance ToJSON TwitterError where
     ]
 
 parseDate :: String -> Maybe UTCTime
-parseDate date = parseTimeM True defaultTimeLocale "%a %h %d %T +0000 %Y" date :: Maybe UTCTime
+parseDate date = parseTimeM True defaultTimeLocale "%a %h %d %T +0000 %Y" date
 
 createTweet :: Text -> Text -> Maybe UTCTime -> Int -> Int -> Tweet
 createTweet = Tweet

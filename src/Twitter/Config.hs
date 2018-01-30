@@ -74,7 +74,7 @@ getConfig :: IO Config
 getConfig = do
   environment <- getEnvironment
   twitter     <- getTwitterConf
-  cache       <- C.newCache (Just (fromNanoSecs 30000000000)) :: IO (C.Cache Text UserTimeLine)
+  cache       <- C.newCache (Just (fromNanoSecs 30000000000))
   return Config{..}
 
 concatKeySecret :: Config -> Maybe String
@@ -85,15 +85,13 @@ concatKeySecret conf = liftA2 (++) ((++) <$> key <*> Just ":") secret
     secret      = consumerSecret twitterConf
 
 twitterEncKey :: Config -> Maybe S8.ByteString
-twitterEncKey conf = do
-  key <- concatKeySecret conf
-  return $ B.encode (toByteString' key)
+twitterEncKey conf = B.encode . toByteString' <$> concatKeySecret conf
 
 getEnvironment :: IO Environment
 getEnvironment = maybe Development read <$> lookupEnv "TWITTER_ENV"
 
 getTwitterConf :: IO TwitterConf
 getTwitterConf = do
-  consumerKey <- lookupEnv "TWITTER_CONSUMER_KEY"
+  consumerKey    <- lookupEnv "TWITTER_CONSUMER_KEY"
   consumerSecret <- lookupEnv "TWITTER_CONSUMER_SECRET"
   return TwitterConf{..}

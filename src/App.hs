@@ -89,11 +89,10 @@ defaultH :: Error -> Action
 defaultH x = do
   e <- lift $ asks environment
   status internalServerError500
-  let o = case e of
-        Development -> object ["error" .= showError x]
-        Production  -> Null
-        Test        -> object ["error" .= showError x]
-  json o
+  json $ case e of
+    Development -> object [ "error" .= showError x ]
+    Test        -> object [ "error" .= showError x ]
+    Production  -> Null
 
 loggingM :: Environment -> Middleware
 loggingM Development = logStdoutDev
@@ -133,9 +132,9 @@ rootAction = json $ object
 
 userTimelineAction :: Action
 userTimelineAction = do
-  config <- lift ask
+  config   <- lift ask
   userName <- param "userName"
-  limit :: Int <- param "limit" `rescue` (\x -> return 10)
+  limit    <- param "limit" `rescue` (\x -> return 10)
   timeline <- liftIO $ getUserTimeline config userName (Just limit)
   let statusAndResponse err = status (mkStatus (code err) (pack $ show err)) >> json err
   either statusAndResponse json timeline

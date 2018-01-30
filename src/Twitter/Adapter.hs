@@ -29,7 +29,10 @@ type TwitterHandle = Handle TimeLineRequest TwitterError UserTimeLine
 
 type TwitterResponse = HandleResponse TwitterError UserTimeLine
 
-data TimeLineRequest = TimeLineRequest { userName :: Text, limit :: Maybe Int }
+data TimeLineRequest = TimeLineRequest
+  { userName :: Text
+  , limit    :: Maybe Int
+  }
 
 createTimeLineRequest :: Text -> Maybe Int -> TimeLineRequest
 createTimeLineRequest = TimeLineRequest

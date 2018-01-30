@@ -25,11 +25,14 @@ instance TwitterService IO where
                            <|> MaybeT (getFromTwitter config request)
     return $ fromJust result
 
+getFrom :: (Config -> IO TwitterHandle) -> Config -> TimeLineRequest -> IO (Maybe (Either TwitterError UserTimeLine))
+getFrom handleBuilder config req = handleBuilder config >>= flip timeline req
+
 getFromCache :: Config -> TimeLineRequest -> IO (Maybe (Either TwitterError UserTimeLine))
-getFromCache config req = CA.newHandle config >>= flip timeline req
+getFromCache = getFrom CA.newHandle
 
 getFromTwitter :: Config -> TimeLineRequest -> IO (Maybe (Either TwitterError UserTimeLine))
-getFromTwitter config req = TA.newHandle config >>= flip timeline req
+getFromTwitter = getFrom TA.newHandle
 
 getUserTimeline :: TwitterService m => Config -> Text -> Maybe Int -> m (Either TwitterError UserTimeLine)
 getUserTimeline config userName limit = getTimeLine config (createTimeLineRequest userName limit)

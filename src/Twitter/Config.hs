@@ -6,7 +6,9 @@ ConfigM(..),
 Config(..),
 Environment(..),
 getConfig,
-twitterEncKey
+twitterEncKey,
+readFromCache,
+putInCache
 ) where
 
 import           Control.Applicative        (Applicative, liftA2, (<*>))
@@ -17,7 +19,8 @@ import           Data.Aeson                 (ToJSON, object, toJSON, (.=))
 import qualified Data.ByteString.Base64     as B
 import qualified Data.ByteString.Char8      as S8
 import           Data.ByteString.Conversion
-import           Data.Cache                 (Cache, newCache)
+import           Data.Cache                 as C (Cache, insert, lookup,
+                                                  newCache)
 import           Data.Maybe                 (maybe)
 import           Data.Text                  (Text)
 import           System.Clock               (fromNanoSecs)
@@ -36,7 +39,7 @@ instance ToJSON Environment where
 data Config = Config
   { twitter     :: TwitterConf
   , environment :: Environment
-  , cache       :: Cache Text UserTimeLine
+  , cache       :: C.Cache Text UserTimeLine
   }
 
 newtype ConfigM a = ConfigM
@@ -48,11 +51,17 @@ data TwitterConf = TwitterConf {
   consumerSecret :: Maybe String
 }
 
+readFromCache :: Config -> Text -> IO (Maybe UserTimeLine)
+readFromCache config = C.lookup (cache config)
+
+putInCache :: Config -> Text -> UserTimeLine -> IO ()
+putInCache config = C.insert (cache config)
+
 getConfig :: IO Config
 getConfig = do
   environment <- getEnvironment
   twitter     <- getTwitterConf
-  cache       <- newCache (Just (fromNanoSecs 30000000000)) :: IO (Cache Text UserTimeLine)
+  cache       <- C.newCache (Just (fromNanoSecs 30000000000)) :: IO (C.Cache Text UserTimeLine)
   return Config{..}
 
 concatKeySecret :: Config -> Maybe String

@@ -27,7 +27,8 @@ import           Network.HTTP.Simple
 import           Twitter.Adapter            (Handle (..), TimeLineRequest (..),
                                              TwitterHandle, TwitterResponse,
                                              execute)
-import           Twitter.Config             (Config (..), twitterEncKey)
+import           Twitter.Config             (Config (..), putInCache,
+                                             twitterEncKey)
 import           Twitter.Model              (TwitterError, UserTimeLine,
                                              apiError, createError,
                                              credentialError)
@@ -82,11 +83,7 @@ requestUserTimeline timelineReq token = do
     extractResponse request
 
 cacheResult :: Config -> Text -> Either TwitterError UserTimeLine -> IO ()
-cacheResult config username timeline = do
-    cacheEng <- liftIO $ return $ cache config
-    case timeline of
-      Right valueToCached -> insert cacheEng username valueToCached
-      _                   -> return ()
+cacheResult config username = either (\_ -> return ()) (putInCache config username)
 
 userTimeline :: Config -> TimeLineRequest -> TimeLineResponse
 userTimeline config timelineReq = runExceptT $ do

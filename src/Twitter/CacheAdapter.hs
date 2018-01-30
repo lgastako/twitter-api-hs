@@ -4,22 +4,18 @@ newHandle
 
 import           Control.Concurrent.MVar (newMVar, withMVar)
 import           Control.Monad.IO.Class  (liftIO)
-import           Data.Cache              as C (lookup)
 import           Data.Text               (Text)
 import           Twitter.Adapter         (Handle (..), TimeLineRequest (..),
                                           TwitterHandle, TwitterResponse,
                                           execute)
-import           Twitter.Config          (Config (..), twitterEncKey)
+import           Twitter.Config          (Config, readFromCache)
 import           Twitter.Model           (TwitterError, UserTimeLine, apiError,
                                           createError, createTweet,
                                           credentialError)
 
-readCache :: Config -> Text -> IO (Maybe UserTimeLine)
-readCache config username = liftIO (return $ cache config) >>= flip C.lookup username
-
 cacheTimeLine :: Config -> TimeLineRequest -> TwitterResponse
 cacheTimeLine config req = do
-  maybeTimeLine <- liftIO $ readCache config (userName req)
+  maybeTimeLine <- liftIO $ readFromCache config (userName req)
   let maybeToEither (Just val) = Just (Right val)
       maybeToEither Nothing    = Nothing
       in return $ maybeToEither maybeTimeLine

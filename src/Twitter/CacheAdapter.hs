@@ -29,7 +29,7 @@ cacheTimeLine config req = do
   maybeTimeLine <- liftIO $ readFromCache config (userName req)
   let maybeToEither (Just val) = Just (Right val)
       maybeToEither Nothing    = Nothing
-      in return $ maybeToEither maybeTimeLine
+  return $ maybeToEither maybeTimeLine
 
 newHandle :: Config -> IO TwitterHandle
 newHandle config = do

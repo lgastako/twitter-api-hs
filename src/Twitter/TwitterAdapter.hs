@@ -75,7 +75,7 @@ extractResponse request = do
   response <- httpJSONEither request
   let onError   _    = Left $ fromJust (createError (getResponseStatusCode response))
       onSuccess resp = maybeToLeft resp (createError (getResponseStatusCode response))
-      in return $ either onError onSuccess (getResponseBody response)
+  return $ either onError onSuccess (getResponseBody response)
 
 requestBearer :: Config -> TokenResponse
 requestBearer config =

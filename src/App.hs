@@ -68,26 +68,22 @@ import Web.Scotty.Trans                     ( ActionT
 type Error = Text
 type Action = ActionT Error ConfigM ()
 
-getSettings :: Environment -> IO Settings
-getSettings e = do
-  let s = defaultSettings
-      s' = case e of
-        Development -> setFdCacheDuration 0 s
-        Production  -> s
-        Test        -> s
-      s'' = setPort 8080 s'
-  return s''
+settings' :: Environment -> Settings
+settings' e = setPort 8080 $ case e of
+  Development -> setFdCacheDuration 0 s
+  Production  -> s
+  Test        -> s
+  where
+    s = defaultSettings
 
-getOptions :: Environment -> IO Options
-getOptions e = do
-  s <- getSettings e
-  return def
-    { settings = s
-    , verbose = case e of
+options' :: Environment -> Options
+options' e = def
+  { settings = settings' e
+  , verbose = case e of
       Development -> 1
       Production  -> 0
       Test        -> 0
-    }
+  }
 
 defaultH :: Error -> Action
 defaultH x = do
@@ -116,9 +112,9 @@ runApp :: IO ()
 runApp = getConfig >>= runApplication
 
 runApplication :: Config -> IO ()
-runApplication config = do
-  o <- getOptions (environment config)
-  scottyOptsT o (runConfig config) (application (environment config))
+runApplication config = scottyOptsT (options' env) (runConfig config) (application env)
+  where
+    env = environment config
 
 application :: Environment -> ScottyT Error ConfigM ()
 application e = do

@@ -13,16 +13,28 @@ credentialError,
 apiError
 ) where
 
-import           Control.Applicative (empty, (<$>), (<*>))
-import           Data.Aeson          (FromJSON (..), ToJSON (..), Value (..),
-                                      object, (.:), (.=))
-import           Data.Data
-import           Data.Maybe          (fromJust)
-import           Data.Text           (Text, pack)
-import           Data.Time.Clock     (UTCTime)
-import           Data.Time.Format    (defaultTimeLocale, parseTimeM)
-import           Data.Typeable
-import           GHC.Generics        (Generic)
+import Control.Applicative ( (<$>)
+                           , (<*>)
+                           , empty
+                           )
+import Data.Aeson          ( (.:)
+                           , (.=)
+                           , FromJSON(..)
+                           , ToJSON(..)
+                           , Value(..)
+                           , object
+                           )
+import Data.Data
+import Data.Maybe          ( fromJust )
+import Data.Text           ( Text
+                           , pack
+                           )
+import Data.Time.Clock     ( UTCTime )
+import Data.Time.Format    ( defaultTimeLocale
+                           , parseTimeM
+                           )
+import Data.Typeable
+import GHC.Generics        ( Generic )
 
 data Tweet = Tweet {
   text          :: Text,

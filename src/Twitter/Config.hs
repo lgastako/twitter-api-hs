@@ -11,22 +11,33 @@ readFromCache,
 putInCache
 ) where
 
-import           Control.Applicative        (Applicative, liftA2, (<*>))
-import           Control.Monad.IO.Class     (MonadIO)
-import           Control.Monad.Reader       (MonadReader, ReaderT)
-import           Control.Monad.Trans.Class  (MonadTrans)
-import           Data.Aeson                 (ToJSON, object, toJSON, (.=))
+import           Control.Applicative              ( (<*>)
+                                                  , Applicative
+                                                  , liftA2
+                                                  )
+import           Control.Monad.IO.Class           ( MonadIO )
+import           Control.Monad.Reader             ( MonadReader
+                                                  , ReaderT
+                                                  )
+import           Control.Monad.Trans.Class        ( MonadTrans )
+import           Data.Aeson                       ( (.=)
+                                                  , ToJSON
+                                                  , object
+                                                  , toJSON
+                                                  )
 import qualified Data.ByteString.Base64     as B
 import qualified Data.ByteString.Char8      as S8
 import           Data.ByteString.Conversion
-import           Data.Cache                 as C (Cache, insert, lookup,
-                                                  newCache)
-import           Data.Maybe                 (maybe)
-import           Data.Text                  (Text)
-import           System.Clock               (fromNanoSecs)
-import           System.Environment         (lookupEnv)
-import           Twitter.Model              (UserTimeLine)
-
+import           Data.Cache                 as C  ( Cache
+                                                  , insert
+                                                  , lookup
+                                                  , newCache
+                                                  )
+import           Data.Maybe                       ( maybe )
+import           Data.Text                        ( Text )
+import           System.Clock                     ( fromNanoSecs )
+import           System.Environment               ( lookupEnv )
+import           Twitter.Model                    ( UserTimeLine )
 
 data Environment = Development
     | Production

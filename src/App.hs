@@ -4,37 +4,63 @@
 
 module App (runApp, app) where
 
-import           Control.Monad.IO.Class               (liftIO)
-import           Control.Monad.Reader                 (asks, lift, runReaderT)
-import           Control.Monad.Reader.Class           (ask)
-import           Data.Aeson                           (Value (..), object, (.=))
-import           Data.ByteString.Char8                (pack)
-import           Data.Default                         (def)
-import           Data.Text.Lazy                       (Text)
-import           Network.HTTP.Types.Status            (created201,
-                                                       internalServerError500,
-                                                       mkStatus, notFound404)
-import           Network.Wai                          (Application, Middleware)
-import           Network.Wai.Handler.Warp             (Settings,
-                                                       defaultSettings,
-                                                       setFdCacheDuration,
-                                                       setPort)
-import           Network.Wai.Middleware.RequestLogger (logStdout, logStdoutDev)
-import           Twitter.Config                       (Config (..), ConfigM,
-                                                       Environment (..),
-                                                       getConfig, runConfigM,
-                                                       twitterEncKey)
-import           Twitter.Model                        (TwitterError (..),
-                                                       UserTimeLine)
-import           Twitter.Service                      (getUserTimeline)
-import           Web.Scotty.Trans                     (ActionT, Options,
-                                                       ScottyT, defaultHandler,
-                                                       get, json, middleware,
-                                                       notFound, param, rescue,
-                                                       scottyAppT, scottyOptsT,
-                                                       settings, showError,
-                                                       status, verbose)
-
+import Control.Monad.IO.Class               ( liftIO )
+import Control.Monad.Reader                 ( asks
+                                            , lift
+                                            , runReaderT
+                                            )
+import Control.Monad.Reader.Class           ( ask )
+import Data.Aeson                           ( (.=)
+                                            , Value(..)
+                                            , object
+                                            )
+import Data.ByteString.Char8                ( pack )
+import Data.Default                         ( def )
+import Data.Text.Lazy                       ( Text )
+import Network.HTTP.Types.Status            ( created201
+                                            , internalServerError500
+                                            , mkStatus
+                                            , notFound404
+                                            )
+import Network.Wai                          ( Application
+                                            , Middleware
+                                            )
+import Network.Wai.Handler.Warp             ( Settings
+                                            , defaultSettings
+                                            , setFdCacheDuration
+                                            , setPort
+                                            )
+import Network.Wai.Middleware.RequestLogger ( logStdout
+                                            , logStdoutDev
+                                            )
+import Twitter.Config                       ( Config(..)
+                                            , ConfigM
+                                            , Environment(..)
+                                            , getConfig
+                                            , runConfigM
+                                            , twitterEncKey
+                                            )
+import Twitter.Model                        ( TwitterError(..)
+                                            , UserTimeLine
+                                            )
+import Twitter.Service                      ( getUserTimeline )
+import Web.Scotty.Trans                     ( ActionT
+                                            , Options
+                                            , ScottyT
+                                            , defaultHandler
+                                            , get
+                                            , json
+                                            , middleware
+                                            , notFound
+                                            , param
+                                            , rescue
+                                            , scottyAppT
+                                            , scottyOptsT
+                                            , settings
+                                            , showError
+                                            , status
+                                            , verbose
+                                            )
 
 type Error = Text
 type Action = ActionT Error ConfigM ()

@@ -5,33 +5,59 @@ module Twitter.TwitterAdapter (
 newHandle
 ) where
 
-import           Control.Applicative        (empty, (<$>), (<*>))
-import           Control.Concurrent.MVar    (newMVar, withMVar)
-import           Control.Monad              (mplus)
-import           Control.Monad.Except       (ExceptT (..), runExceptT)
-import           Control.Monad.Trans        (liftIO)
-import           Control.Monad.Trans.Maybe  (MaybeT (..))
-import           Core.Utils                 (fromMaybeT, maybeToLeft)
-import           Data.Aeson                 (FromJSON (..), ToJSON (..),
-                                             Value (..), object, (.:), (.=))
+import           Control.Applicative              ( (<$>)
+                                                  , (<*>)
+                                                  , empty
+                                                  )
+import           Control.Concurrent.MVar          ( newMVar
+                                                  , withMVar
+                                                  )
+import           Control.Monad                    ( mplus )
+import           Control.Monad.Except             ( ExceptT(..)
+                                                  , runExceptT
+                                                  )
+import           Control.Monad.Trans              ( liftIO )
+import           Control.Monad.Trans.Maybe        ( MaybeT(..) )
+import           Core.Utils                       ( fromMaybeT
+                                                  , maybeToLeft
+                                                  )
+import           Data.Aeson                       ( (.:)
+                                                  , (.=)
+                                                  , FromJSON(..)
+                                                  , ToJSON(..)
+                                                  , Value(..)
+                                                  , object
+                                                  )
 import qualified Data.ByteString.Char8      as S8
-import           Data.ByteString.Conversion (toByteString')
-import           Data.Cache                 as C (insert)
-import           Data.Either                (either, fromLeft)
-import           Data.Maybe                 (fromJust, fromMaybe)
-import           Data.Text                  (Text)
+import           Data.ByteString.Conversion       ( toByteString' )
+import           Data.Cache                 as C  ( insert )
+import           Data.Either                      ( either
+                                                  , fromLeft
+                                                  )
+import           Data.Maybe                       ( fromJust
+                                                  , fromMaybe
+                                                  )
+import           Data.Text                        ( Text )
 import qualified Data.Text.Encoding         as E
-import           GHC.Generics               (Generic)
+import           GHC.Generics                     ( Generic )
 import           Network.HTTP.Client
 import           Network.HTTP.Simple
-import           Twitter.Adapter            (Handle (..), TimeLineRequest (..),
-                                             TwitterHandle, TwitterResponse,
-                                             execute)
-import           Twitter.Config             (Config (..), putInCache,
-                                             twitterEncKey)
-import           Twitter.Model              (TwitterError, UserTimeLine,
-                                             apiError, createError,
-                                             credentialError)
+import           Twitter.Adapter                  ( Handle(..)
+                                                  , TimeLineRequest(..)
+                                                  , TwitterHandle
+                                                  , TwitterResponse
+                                                  , execute
+                                                  )
+import           Twitter.Config                   ( Config(..)
+                                                  , putInCache
+                                                  , twitterEncKey
+                                                  )
+import           Twitter.Model                    ( TwitterError
+                                                  , UserTimeLine
+                                                  , apiError
+                                                  , createError
+                                                  , credentialError
+                                                  )
 
 data Token = Token { tokenType :: Text, accessToken :: Text } deriving (Generic, Show)
 

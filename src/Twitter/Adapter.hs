@@ -14,8 +14,10 @@ module Twitter.Adapter
   , timeline
   ) where
 
-import           Data.Text     (Text)
-import           Twitter.Model (TwitterError, UserTimeLine)
+import Data.Text     ( Text )
+import Twitter.Model ( TwitterError
+                     , UserTimeLine
+                     )
 
 type HandleResponse e a = IO (Maybe (Either e a))
 

@@ -4,16 +4,21 @@ module Twitter.Service
   getUserTimeline
   ) where
 
-import           Control.Applicative       ((<|>))
-import           Control.Monad.Trans.Maybe (MaybeT (..))
-import           Data.Maybe                (fromJust)
-import           Data.Text                 (Text)
-import           Twitter.Adapter           (Handle, TimeLineRequest,
-                                            TwitterHandle,
-                                            createTimeLineRequest, timeline)
+import           Control.Applicative             ( (<|>) )
+import           Control.Monad.Trans.Maybe       ( MaybeT(..) )
+import           Data.Maybe                      ( fromJust )
+import           Data.Text                       ( Text )
+import           Twitter.Adapter                 ( Handle
+                                                 , TimeLineRequest
+                                                 , TwitterHandle
+                                                 , createTimeLineRequest
+                                                 , timeline
+                                                 )
 import           Twitter.CacheAdapter      as CA
-import           Twitter.Config            (Config)
-import           Twitter.Model             (TwitterError, UserTimeLine)
+import           Twitter.Config                  ( Config )
+import           Twitter.Model                   ( TwitterError
+                                                 , UserTimeLine
+                                                 )
 import qualified Twitter.TwitterAdapter    as TA
 
 class Monad m => TwitterService m where

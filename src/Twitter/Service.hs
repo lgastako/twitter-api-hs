@@ -1,7 +1,6 @@
 module Twitter.Service
-  (
-  TwitterService(..),
-  getUserTimeline
+  ( TwitterService(..)
+  , getUserTimeline
   ) where
 
 import           Control.Applicative             ( (<|>) )

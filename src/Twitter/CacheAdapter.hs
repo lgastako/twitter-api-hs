@@ -1,6 +1,6 @@
-module Twitter.CacheAdapter (
-newHandle
-) where
+module Twitter.CacheAdapter
+  ( newHandle
+  ) where
 
 import Control.Concurrent.MVar ( newMVar
                                , withMVar

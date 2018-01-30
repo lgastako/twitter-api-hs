@@ -1,9 +1,9 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Twitter.TwitterAdapter (
-newHandle
-) where
+module Twitter.TwitterAdapter
+  ( newHandle
+  ) where
 
 import           Control.Applicative              ( (<$>)
                                                   , (<*>)
@@ -31,9 +31,7 @@ import           Data.Aeson                       ( (.:)
 import qualified Data.ByteString.Char8      as S8
 import           Data.ByteString.Conversion       ( toByteString' )
 import           Data.Cache                 as C  ( insert )
-import           Data.Either                      ( either
-                                                  , fromLeft
-                                                  )
+import           Data.Either                      ( either )
 import           Data.Maybe                       ( fromJust
                                                   , fromMaybe
                                                   )

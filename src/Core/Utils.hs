@@ -1,15 +1,13 @@
-module Core.Utils(
-fromMaybeT,
-maybeToLeft
-) where
+module Core.Utils
+  ( fromMaybeT
+  , maybeToLeft
+  ) where
 
 import Control.Monad             ( (<=<) )
 import Control.Monad.Trans.Maybe ( MaybeT
                                  , runMaybeT
                                  )
-import Data.Either               ( either
-                                 , fromLeft
-                                 )
+import Data.Either               ( either )
 import Data.Maybe                ( fromMaybe
                                  , maybe
                                  )

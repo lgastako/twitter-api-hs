@@ -3,15 +3,20 @@
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE RecordWildCards    #-}
 
-module Twitter.Model (
-TwitterError(..),
-Tweet(text,userName,createdAt,retweetCount,favoriteCount),
-UserTimeLine,
-createTweet,
-createError,
-credentialError,
-apiError
-) where
+module Twitter.Model
+  ( Tweet( createdAt
+         , favoriteCount
+         , retweetCount
+         , text
+         , userName
+         )
+  , TwitterError(..)
+  , UserTimeLine
+  , apiError
+  , createError
+  , createTweet
+  , credentialError
+  ) where
 
 import Control.Applicative ( (<$>)
                            , (<*>)

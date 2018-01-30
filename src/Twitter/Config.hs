@@ -1,15 +1,16 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE RecordWildCards            #-}
-module Twitter.Config (
-ConfigM(..),
-Config(..),
-Environment(..),
-getConfig,
-twitterEncKey,
-readFromCache,
-putInCache
-) where
+
+module Twitter.Config
+  ( ConfigM(..)
+  , Config(..)
+  , Environment(..)
+  , getConfig
+  , twitterEncKey
+  , readFromCache
+  , putInCache
+  ) where
 
 import           Control.Applicative              ( (<*>)
                                                   , Applicative

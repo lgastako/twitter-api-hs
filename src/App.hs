@@ -2,7 +2,10 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module App (runApp, app) where
+module App
+  ( app
+  , runApp
+  ) where
 
 import Control.Monad.IO.Class               ( liftIO )
 import Control.Monad.Reader                 ( asks

@@ -1,14 +1,16 @@
 {-# LANGUAGE RecordWildCards #-}
+
 -- | This is an abstract interface for a simple Twitter service. It is intended to be
 -- imported qualified as follows.
 --
 -- > import qualified Twitter.Service as Service
 --
 module Twitter.Adapter
-  (
-    Handle(..)
+  ( Handle(..)
+  , TimeLineRequest( limit
+                   , userName
+                   )
   , TwitterHandle
-  , TimeLineRequest(userName,limit)
   , TwitterResponse
   , createTimeLineRequest
   , timeline
